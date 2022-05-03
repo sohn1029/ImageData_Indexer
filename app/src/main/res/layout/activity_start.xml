@@ -14,10 +14,10 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/main_img"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.507"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.596"
+        app:layout_constraintVertical_bias="0.55"
         tools:ignore="UseCompoundDrawables">
 
         <ImageView
@@ -40,37 +40,49 @@
 
     <ImageView
         android:id="@+id/main_img"
-        android:layout_width="360dp"
-        android:layout_height="320dp"
-        android:src="@drawable/no_img"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:src="@drawable/main_image_border"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.509"
+        app:layout_constraintHorizontal_bias="0.50"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.343" />
+        app:layout_constraintVertical_bias="0.35" />
 
     <com.sohn.data_maker.DrawingView
         android:id="@+id/drawing_view"
-        android:layout_width="360dp"
-        android:layout_height="320dp"
-        app:layout_constraintBottom_toBottomOf="@+id/main_img"
-        app:layout_constraintEnd_toEndOf="@+id/main_img"
-        app:layout_constraintHorizontal_bias="0.4"
-        app:layout_constraintStart_toStartOf="@+id/main_img"
-        app:layout_constraintTop_toTopOf="@+id/main_img"
-        app:layout_constraintVertical_bias="1.0" />
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:src="@drawable/main_image_border"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.50"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.35" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
-        android:layout_width="339dp"
-        android:layout_height="85dp"
+        android:layout_width="300dp"
+        android:layout_height="70dp"
+        android:scrollbars="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.375"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/main_img"
-        app:layout_constraintVertical_bias="0.251"
-        android:scrollbars="horizontal"/>
+        app:layout_constraintVertical_bias="0.209" />
+
+    <Button
+        android:id="@+id/next_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.86"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/main_img"
+        app:layout_constraintVertical_bias="0.927" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -22,7 +22,7 @@ public class MakeGroupActivity extends Activity {
         //타이틀바 없애기
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_make_group);
-
+        this.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
     }
 
@@ -38,6 +38,10 @@ public class MakeGroupActivity extends Activity {
         finish();
     }
 
+    public void mOnCancel(View v){
+        finish();
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         //바깥레이어 클릭시 안닫히게
@@ -50,6 +54,7 @@ public class MakeGroupActivity extends Activity {
     @Override
     public void onBackPressed() {
         //안드로이드 백버튼 막기
+        finish();
         return;
     }
 }

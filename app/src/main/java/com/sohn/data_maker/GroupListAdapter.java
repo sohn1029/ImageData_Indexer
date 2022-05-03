@@ -1,25 +1,37 @@
 package com.sohn.data_maker;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.core.view.MotionEventCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
-public class GroupListAdapter extends RecyclerView.Adapter<GroupListAdapter.ViewHolder> {
+public class GroupListAdapter extends RecyclerView.Adapter<GroupListAdapter.ViewHolder> implements GroupTouchHelperCallback.OnItemMoveListener{
 
     private ArrayList<String> itemList;
     private Context context;
     private View.OnClickListener onClickItem;
+    private OnStartDragListener mStartDragListener;
 
-    public GroupListAdapter(Context context, ArrayList<String> itemList, View.OnClickListener onClickItem) {
+    public interface OnStartDragListener{
+        void onStartDrag(GroupListAdapter.ViewHolder holder);
+        void onItemMove(int fromPosition, int toPosition);
+        void onItemSwiped(int Position);
+    }
+
+    public GroupListAdapter(Context context, ArrayList<String> itemList, View.OnClickListener onClickItem, OnStartDragListener startDragListener) {
         this.context = context;
         this.itemList = itemList;
         this.onClickItem = onClickItem;
+        this.mStartDragListener = startDragListener;
     }
 
 
@@ -40,6 +52,14 @@ public class GroupListAdapter extends RecyclerView.Adapter<GroupListAdapter.View
         holder.textview.setText(item);
         holder.textview.setTag(item);
         holder.textview.setOnClickListener(onClickItem);
+        holder.textview.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                mStartDragListener.onStartDrag(holder);
+                return false;
+            }
+        });
+
     }
 
     @Override
@@ -57,5 +77,24 @@ public class GroupListAdapter extends RecyclerView.Adapter<GroupListAdapter.View
 
             textview = itemView.findViewById(R.id.item_textview);
         }
+    }
+    @Override
+    public void onItemMove(int fromPosition, int toPosition){
+        mStartDragListener.onItemMove(fromPosition, toPosition);
+    }
+
+    @Override
+    public void onItemSwiped(int Position){
+        mStartDragListener.onItemSwiped(Position);
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    public void updateList(ArrayList<String> data){
+        this.itemList = data;
+        this.notifyDataSetChanged();
+    }
+
+    public ArrayList<String> getItemList(){
+        return itemList;
     }
 }

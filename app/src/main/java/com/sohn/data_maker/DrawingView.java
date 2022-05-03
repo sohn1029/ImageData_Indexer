@@ -3,58 +3,64 @@ package com.sohn.data_maker;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
+
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.GestureDetector;
-import android.view.LayoutInflater;
+
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
-import java.time.Duration;
-import java.time.Instant;
+import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.zip.Inflater;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
-public
-class DrawingView extends View {
+
+public class DrawingView extends View {
 
     //    생성된 원들을 담아놓는 리스트이다
 //    원의 정보가 들어가있는 CircleInfoData(원정보) 를 담고있다
 //    원이 생성될 시 drawnCircleList에 원들이 추가된다
 //    원을 클릭 한지 확인하기 위해 onTouchEvent - ACTION_MOVE 에서 포문으로 각각의 원들을 불러온다
 //    원을 그리기 위해서 onDraw에서 drawnCircleList에서 원의 대한 정보를 가져와 그리도록한다
-    //private ArrayList<Point> drawnCircleList = new ArrayList<>();
     private ArrayList<ArrayList<Point>> groupList = new ArrayList<>();
-    private ArrayList<Integer> grouptypeList = new ArrayList<Integer>();
+    private ArrayList<String> grouptypeList = new ArrayList<String>();
+    private Map<String, Integer> groupColor = new HashMap<String,Integer>();
 
-    int[] colorlist = {Color.argb(255,255,0,0),
-            Color.argb(255,0,255,0),
-            Color.argb(255,0,0,255),
-            Color.argb(255,255,120,120),
-            Color.argb(255,120,255,120),
-            Color.argb(255,120,120,255),
-            Color.argb(255,255,120,0),
-            Color.argb(255,255,0,120),
-            Color.argb(255,120,255,0),
-            Color.argb(255,120,0,255),
-            Color.argb(255,0,120,255),
-            Color.argb(255,0,255,120)};
+    int[] colorlist = {Color.argb(255,235,50,50),
+            Color.argb(255,55,126,184),
+            Color.argb(255,77,175,74),
+            Color.argb(255,152,78,163),
+            Color.argb(255,235,117,0),
+            Color.argb(255,195,195,51),
+            Color.argb(255,166,86,40),
+            Color.argb(255,249,140,195),
+            Color.argb(255,162,162,162)};
+
     int current = -1;
     int current_group = -1;
     float current_x = -1;
     float current_y = -1;
-
-
+    int origin_x = 0;
+    int origin_y = 0;
+    float scale_x = 0;
+    float scale_y = 0;
+    int[] img_boarder = new int[4];
     private void showBottomSheetDialog(){
         final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(getContext());
         bottomSheetDialog.setContentView(R.layout.addpoint_bottom_sheet);
@@ -145,9 +151,6 @@ class DrawingView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         System.out.println("cycling");
 
-
-
-
         switch (event.getAction()) {
 
             case MotionEvent.ACTION_DOWN:
@@ -179,7 +182,6 @@ class DrawingView extends View {
                     current = -1;
                     current_group = -1;
                 }
-
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -187,13 +189,11 @@ class DrawingView extends View {
                 if(current != -1){
                     x = event.getX();
                     y = event.getY();
-                    if(Math.pow(current_x-x,2) + Math.pow(current_y-y,2) > Math.pow(groupList.get(current_group).get(current).getRadius()/2,2)){
+                    if(Math.pow(current_x-x,2) + Math.pow(current_y-y,2) > Math.pow(groupList.get(current_group).get(current).getRadius()/4,2)){
                         handler.removeCallbacks(mLongPressed);
                     }
 
                     moveCircleShape(x, y, current_group, current);
-
-
 
                 }
 
@@ -201,8 +201,6 @@ class DrawingView extends View {
 
             case MotionEvent.ACTION_UP:
                 handler.removeCallbacks(mLongPressed);
-
-
                 break;
         }
 
@@ -219,14 +217,16 @@ class DrawingView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 //        원을 담고있는 리스트에서 하나씩 돌려서 원을 생성해주도록함
+
         int paint_color = 0;
         for(ArrayList<Point> group : groupList){
-            paint.setColor(colorlist[grouptypeList.get(paint_color++)]);
+            paint.setColor(colorlist[groupColor.get(grouptypeList.get(paint_color++))]);
             for (int i = 0; i < group.size(); i++) {
                 canvas.drawCircle(group.get(i).getCircleX(),
                         group.get(i).getCircleY(),
-                        group.get(i).getRadius(),
+                        group.get(i).getRadius()/6,
                         paint);
+                paint.setStrokeWidth(5);
                 if(i+1 != group.size()){
                     canvas.drawLine(group.get(i).getCircleX(),
                             group.get(i).getCircleY(),
@@ -241,10 +241,11 @@ class DrawingView extends View {
                             group.get(0).getCircleY(),
                             paint);
                 }
-
+                paint.setStrokeWidth(5);
             }
 
         }
+
 
 
         super.onDraw(canvas);
@@ -261,9 +262,22 @@ class DrawingView extends View {
     private void moveCircleShape(float x, float y, int groupIndex, int listIndex) {
 
         Point circleInfoData = groupList.get(groupIndex).get(listIndex);
-
-        circleInfoData.setCircleX(Math.round(x));
+        if(x < img_boarder[0]){
+            x = img_boarder[0];
+        }
+        if(y < img_boarder[1]){
+            y = img_boarder[1];
+        }
+        if(x > img_boarder[0]+img_boarder[2]){
+            x = img_boarder[0]+img_boarder[2];
+        }
+        if(y > img_boarder[1]+img_boarder[3]){
+            y = img_boarder[1]+img_boarder[3];
+        }
+        System.out.println("point : " + x);
+        System.out.println("point : " + y);
         circleInfoData.setCircleY(Math.round(y));
+        circleInfoData.setCircleX(Math.round(x));
 
         this.invalidate();
     }
@@ -279,24 +293,151 @@ class DrawingView extends View {
         Point circleInfoData = new Point(
                 x + offset_w,
                 y + offset_h,
-                40);
+                60);
         groupList.get(groupIndex).add(place, circleInfoData);
         this.invalidate();
 
     }
 
     public void deleteCircle(int groupIndex, int place){
+        if(groupList.get(groupIndex).size() == 3){
+            groupList.remove(groupIndex);
+            grouptypeList.remove(groupIndex);
+            this.invalidate();
+            return;
+        }
         groupList.get(groupIndex).remove(place);
         this.invalidate();
     }
 
-    public void createGroup(int type){
+    public void createGroup(String type){
         ArrayList<Point> group = new ArrayList<>();
         groupList.add(group);
         grouptypeList.add(type);
+        if(!groupColor.containsKey(type)){
+            Collection<Integer> arr = groupColor.values();
+            int[] tmp = new int[colorlist.length];
+            for(int i = 0; i < arr.size(); i++){
+                tmp[(int) arr.toArray()[i]]++;
+            }
+            int min = 0;
+            for(min = 0; min < colorlist.length; min++){
+                if(tmp[min] == 0){
+                    break;
+                }
+            }
+            groupColor.put(type, min);
+        }
         createCircle(groupList.size()-1, 0, getWidth()/2, getHeight()/2, 0, 60);
         createCircle(groupList.size()-1, 0, getWidth()/2, getHeight()/2,51, -30);
         createCircle(groupList.size()-1, 0, getWidth()/2, getHeight()/2,-51, -30);
     }
 
+    public void deleteGroup(String type){
+        for(int i = 0; i < groupList.size(); i++){
+            if(grouptypeList.get(i).equals(type)){
+                groupList.remove(i);
+                grouptypeList.remove(i);
+            }
+        }
+        groupColor.remove(type);
+    }
+
+    public void sortGroup(ArrayList<String> order){
+        ArrayList<ArrayList<Point>> newgroupList = new ArrayList<>();
+        ArrayList<String> newgroupTypeList = new ArrayList<>();
+
+        for(int i = 0; i < order.size(); i++){
+            for(int j = 0; j < grouptypeList.size(); j++){
+
+                if(order.get(i) == grouptypeList.get(j)){
+
+                    newgroupList.add(0,groupList.get(j));
+                    newgroupTypeList.add(0,grouptypeList.get(j));
+
+                }
+            }
+        }
+        groupList = newgroupList;
+        grouptypeList = newgroupTypeList;
+        this.invalidate();
+
+    }
+
+    public Map<String, Integer> getGroupColor(){
+        return groupColor;
+    }
+
+    public void setGroupColor(Map<String, Integer> newgroupColor){
+        groupColor = newgroupColor;
+    }
+
+    public void printArray(ArrayList<String> target){
+        for(int i = 0; i < target.size(); i++){
+            System.out.print(target.get(i) + " ");
+        }
+    }
+
+
+
+
+
+    public void resetView(){
+        groupList = new ArrayList<>();
+        grouptypeList = new ArrayList<String>();
+        groupColor = new HashMap<String,Integer>();
+        current = -1;
+        current_group = -1;
+        current_x = -1;
+        current_y = -1;
+
+        this.invalidate();
+    }
+
+    public void updateImageInfo(ImageView imageView){
+
+        if (imageView == null || imageView.getDrawable() == null)
+            return;
+
+        // Get image dimensions
+        // Get image matrix values and place them in an array
+        float[] f = new float[9];
+        imageView.getImageMatrix().getValues(f);
+
+        // Extract the scale values using the constants (if aspect ratio maintained, scaleX == scaleY)
+        final float scaleX = f[Matrix.MSCALE_X];
+        final float scaleY = f[Matrix.MSCALE_Y];
+        scale_x = scaleX;
+        scale_y = scaleY;
+        // Get the drawable (could also get the bitmap behind the drawable and getWidth/getHeight)
+        final Drawable d = imageView.getDrawable();
+        final int origW = d.getIntrinsicWidth();
+        final int origH = d.getIntrinsicHeight();
+        origin_x = origW;
+        origin_y = origH;
+        // Calculate the actual dimensions
+        final int actW = Math.round(origW * scaleX);
+        final int actH = Math.round(origH * scaleY);
+
+        img_boarder[2] = actW;
+        img_boarder[3] = actH;
+
+        // Get image position
+        // We assume that the image is centered into ImageView
+        int imgViewW = imageView.getWidth();
+        int imgViewH = imageView.getHeight();
+
+        int top = (int) (imgViewH - actH)/2;
+        int left = (int) (imgViewW - actW)/2;
+
+        img_boarder[0] = left;
+        img_boarder[1] = top;
+
+        return;
+
+    }
+    public void makeImage(String dir, String cur_file) throws IOException {
+        ResultImageManager nr = new ResultImageManager(groupList, grouptypeList, groupColor);
+        nr.makeImage(dir, cur_file, origin_x, origin_y, scale_x, scale_y, img_boarder);
+    }
 }

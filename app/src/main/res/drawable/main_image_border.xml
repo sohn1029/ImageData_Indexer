@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<shape  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+<!--    <solid android:color="#0fff"/>-->
+    <stroke android:width="8dp" android:color="#01fee9" />
+
+</shape>
+
